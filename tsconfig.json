@@ -1,4 +1,5 @@
 {
+  
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,
@@ -15,9 +16,9 @@
       "@/*": ["./*"]
     },
     "allowImportingTsExtensions": true,
-
-    ✅ "noEmit": false,
-    ✅ "outDir": "dist"
+    "noEmit": false,
+    "outDir": "dist"
   }
+
 }
 
