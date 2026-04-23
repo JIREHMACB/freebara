@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const JWT_SECRET = process.env.JWT_SECRET || 'jce-connect-secret-key-2026';
 
@@ -564,16 +565,38 @@ db.exec(`
   );
 `);
 
-// Helper to add columns safely
+const allowedTables = ["users", "posts", "orders"]; // 🔒 whitelist
+const allowedTypes = ["TEXT", "INTEGER", "REAL", "BLOB"];
+
+const isSafeName = (name: string) => /^[a-zA-Z0-9_]+$/.test(name);
+
 const addColumn = (table: string, column: string, type: string) => {
   try {
+    // 🔒 Vérifications de sécurité
+    if (!allowedTables.includes(table)) {
+      throw new Error("Table non autorisée");
+    }
+
+    if (!isSafeName(column)) {
+      throw new Error("Nom de colonne invalide");
+    }
+
+    if (!allowedTypes.includes(type.toUpperCase())) {
+      throw new Error("Type invalide");
+    }
+
+    // 📦 Récupérer les colonnes existantes
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as any[];
     const columnNames = columns.map(c => c.name);
-    if (columnNames.length > 0 && !columnNames.includes(column)) {
+
+    // ➕ Ajouter colonne si elle n'existe pas
+    if (!columnNames.includes(column)) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+      console.log(`✅ Colonne "${column}" ajoutée à "${table}"`);
     }
+
   } catch (e) {
-    // Table might not exist or other error
+    console.error("❌ Erreur addColumn:", e);
   }
 };
 
